@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algebra Blitz - Learning Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Styles now apply directly to the body, as this page is isolated */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #1a1a2e; /* Dark navy blue */
+            color: #ffffff;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #game-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: #16213e;
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 3px solid #0f3460;
+            box-shadow: 0 0 25px rgba(225, 78, 202, 0.3);
+            margin: 1rem;
+        }
+        .answer-btn {
+            font-family: 'Press Start 2P', cursive;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px #4a4a4a;
+        }
+        .answer-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 #4a4a4a;
+        }
+        /* Feedback animations */
+        .correct-flash {
+            animation: flash-green 0.5s ease;
+        }
+        .incorrect-flash {
+            animation: flash-red 0.5s ease;
+        }
+        @keyframes flash-green {
+            0%, 100% { background-color: #16213e; }
+            50% { background-color: #10b981; }
+        }
+        @keyframes flash-red {
+            0%, 100% { background-color: #16213e; }
+            50% { background-color: #ef4444; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- Game Header -->
+        <header class="mb-6">
+            <h1 class="text-3xl md:text-4xl text-cyan-300">Algebra Blitz</h1>
+        </header>
+
+        <!-- Game Info Bar -->
+        <div class="flex justify-between items-center bg-black bg-opacity-40 p-4 rounded-lg mb-8 border-2 border-cyan-500 text-sm md:text-base">
+            <div>Score: <span id="score">0</span></div>
+            <div>Lives: <span id="lives">❤️❤️❤️</span></div>
+        </div>
+
+        <!-- Main Game Area -->
+        <div id="game-area">
+            <div class="mb-8 p-4 bg-black bg-opacity-30 rounded-lg">
+                 <p class="text-xl md:text-3xl text-yellow-300" id="equation-display">Solve for X</p>
+            </div>
+           
+            <div id="answer-options" class="grid grid-cols-1 gap-4">
+                <!-- Answer buttons will be generated here by JS -->
+            </div>
+        </div>
+        
+        <!-- Modal for Start/Game Over -->
+        <div id="game-modal" class="mt-8">
+            <h2 id="modal-title" class="text-2xl text-yellow-400 mb-4">Welcome!</h2>
+            <p id="modal-text" class="mb-6">Click the correct answer to score points.</p>
+            <button id="start-button" class="w-full py-3 px-6 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-xl answer-btn">Start Game</button>
+        </div>
+    </div>
+
+    <script>
+        // --- UI ELEMENTS --- //
+        const scoreEl = document.getElementById('score');
+        const livesEl = document.getElementById('lives');
+        const equationEl = document.getElementById('equation-display');
+        const answerOptionsEl = document.getElementById('answer-options');
+        const gameAreaEl = document.getElementById('game-area');
+        const gameContainerEl = document.getElementById('game-container');
+        
+        // Modal Elements
+        const modal = document.getElementById('game-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalText = document.getElementById('modal-text');
+        const startButton = document.getElementById('start-button');
+
+        // --- GAME STATE --- //
+        let score = 0;
+        let lives = 3;
+        let currentAnswer = 0;
+
+        function startGame() {
+            score = 0;
+            lives = 3;
+            updateUI();
+            gameAreaEl.classList.remove('hidden');
+            modal.classList.add('hidden');
+            nextRound();
+        }
+        
+        function nextRound() {
+            generateEquation();
+        }
+        
+        function updateUI() {
+            scoreEl.textContent = score;
+            livesEl.textContent = '❤️'.repeat(lives);
+        }
+
+        function generateEquation() {
+            let a, b, c;
+            
+            if (score < 5) {
+                a = Math.floor(Math.random() * 10) + 1;
+                c = Math.floor(Math.random() * 10) + 1;
+                b = a + c;
+                currentAnswer = c;
+                equationEl.textContent = `x + ${a} = ${b}`;
+            } else if (score < 10) {
+                a = Math.floor(Math.random() * 10) + 1;
+                c = Math.floor(Math.random() * 10) + 5;
+                b = c - a;
+                currentAnswer = c;
+                equationEl.textContent = `x - ${a} = ${b}`;
+            } else if (score < 15) {
+                a = Math.floor(Math.random() * 8) + 2;
+                c = Math.floor(Math.random() * 8) + 2;
+                b = a * c;
+                currentAnswer = c;
+                equationEl.textContent = `${a}x = ${b}`;
+            } else {
+                 a = Math.floor(Math.random() * 5) + 2;
+                 let x = Math.floor(Math.random() * 8) + 1;
+                 b = Math.floor(Math.random() * 10) + 1;
+                 c = a * x + b;
+                 currentAnswer = x;
+                 equationEl.textContent = `${a}x + ${b} = ${c}`;
+            }
+            
+            generateAnswerOptions(currentAnswer);
+        }
+        
+        function generateAnswerOptions(answer) {
+            answerOptionsEl.innerHTML = '';
+            let options = [answer];
+
+            while (options.length < 3) {
+                let distractor = answer + Math.floor(Math.random() * 9) - 4;
+                if (distractor !== 0 && !options.includes(distractor)) {
+                    options.push(distractor);
+                }
+            }
+
+            options.sort(() => Math.random() - 0.5);
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('answer-btn', 'w-full', 'py-3', 'px-6', 'bg-cyan-600', 'hover:bg-cyan-700', 'text-white', 'rounded-lg', 'text-xl');
+                button.onclick = () => checkAnswer(option);
+                answerOptionsEl.appendChild(button);
+            });
+        }
+        
+        function checkAnswer(selectedAnswer) {
+            if (selectedAnswer === currentAnswer) {
+                score++;
+                gameContainerEl.classList.add('correct-flash');
+                setTimeout(() => gameContainerEl.classList.remove('correct-flash'), 500);
+                nextRound();
+            } else {
+                lives--;
+                gameContainerEl.classList.add('incorrect-flash');
+                setTimeout(() => gameContainerEl.classList.remove('incorrect-flash'), 500);
+                if (lives <= 0) {
+                    gameOver();
+                }
+            }
+            updateUI();
+        }
+        
+        function gameOver() {
+            gameAreaEl.classList.add('hidden');
+            modal.classList.remove('hidden');
+            modalTitle.textContent = 'Game Over!';
+            modalText.textContent = `Your final score is ${score}. Great effort!`;
+            startButton.textContent = 'Play Again';
+        }
+
+        // --- INITIAL SETUP --- //
+        gameAreaEl.classList.add('hidden');
+        startButton.addEventListener('click', startGame);
+    </script>
+</body>
+</html>
